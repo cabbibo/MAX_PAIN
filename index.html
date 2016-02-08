@@ -1,0 +1,670 @@
+<html>
+<head>
+
+  <style>
+   @font-face {
+      font-family: "GeoSans";
+      src: url("assets/GeosansLight.ttf");
+    }
+    html{ color:#ffc; background:#000; font-family:"GeoSans" }
+    body{
+      font-size:30px;
+    }
+    a{
+      color: #fff;
+    }
+    #renderer{
+      position:fixed;
+      top:0px;
+      left:0px;
+    }
+    code{
+      color:#fff;
+      font-size:20px;
+    }
+
+
+    #mainBody{
+      position:absolute;
+      bottom:0px;
+      height:20px;
+      //background: #555;
+      width: 100%;
+      z-index: 99;
+      border:4px solid white;
+
+    }
+
+    #buttonBody{
+      position:absolute;
+      top:-4px;
+      height:28px;
+      width:28px;
+      border-radius: 50%;
+      background:#1a1aff;
+      z-index: 999;
+    }
+
+    #filledBody{
+      height:20px;
+      width:24px;
+      background:#f00;
+
+    }
+
+  </style>
+
+</head>
+<body style="margin:0px">
+
+<script src="lib/three.js"                    ></script>
+<script src="lib/Tween.js"                    ></script>
+<script src="lib/jquery.min.js"               ></script>
+<script src="lib/stats.min.js"                ></script>
+<script src="lib/underscore.js"               ></script>
+<script src="lib/TrackballControls.js"        ></script>
+<script src="lib/ShaderLoader.js"             ></script>
+<script src="lib/ObjectControls.js"           ></script>
+<script src="lib/MouseMoveControls.js"        ></script>
+<script src="lib/RotateControls.js"           ></script>
+<script src="lib/PhysicsRenderer.js"          ></script>
+
+
+<script src="lib/AudioController.js"          ></script>
+<script src="lib/Stream.js"                   ></script>
+<script src="lib/UserAudio.js"                ></script>
+
+<script src="lib/AudioBuffer.js"              ></script>
+<script src="lib/BufferedAudio.js"            ></script>
+
+<script src="lib/OBJLoader.js"                ></script>
+
+<script src="Slider.js"                         ></script>
+
+
+
+<script>
+
+
+/*
+
+  Normal - untextured, toon shaded. simple movements
+  Pain - V textured, raytracing problems left & right. BAD
+  Love - White or gold? specular or smooth?
+
+*/
+
+  setUpGlobal();
+  beginLoad();
+
+
+
+ 
+  
+  function init(){
+
+    G.slider = new Slider();
+
+      G.uniforms = {
+
+        t_audio:  { type:"t"  , value : null },
+        dT:       { type:"f"  , value : 0             },
+        time:     { type:"f"  , value : 0             },
+        lightPos: { type:"v3" , value : null          },
+        iModelMat:{ type:"m4" , value: new THREE.Matrix4() },
+        t_matcap: { type:"t", value: G.textures.matcap},
+        t_normal: { type:"t", value: G.textures.normal},
+        t_color:  { type:"t", value: G.textures.colorTex},
+
+        links:       { type:"v4v" , value:[] },
+        activeLink:  { type:"v4" , value:new THREE.Vector4() },
+        hoveredLink: { type:"v4" , value:new THREE.Vector4() },
+
+        pain:{type:"f", value:0},
+        love:{type:"f", value:0},
+        norm:{type:"f", value:0},
+
+
+      }
+
+      G.uniforms.t_audio.value = G.audio.texture;
+
+      G.clickNote = new BufferedAudio(  G.clickNoteBuffer.buffer , 
+                                        G.audio.ctx ,
+                                        G.audio.gain , 
+                                        false );
+
+      G.startNote = new BufferedAudio(  G.startNoteBuffer.buffer , 
+                                        G.audio.ctx ,
+                                        G.audio.gain , 
+                                        false );
+
+      G.volumes = {};
+
+
+      G.volumes.pain = G.audio.ctx.createGain();
+      G.volumes.pain.connect( G.audio.gain );
+      G.painLoop = new BufferedAudio( G.painLoopBuffer.buffer , 
+                                      G.audio.ctx ,
+                                      G.volumes.pain, 
+                                      true );
+
+      G.volumes.love = G.audio.ctx.createGain();
+      G.volumes.love.connect( G.audio.gain );
+      G.loveLoop = new BufferedAudio( G.loveLoopBuffer.buffer , 
+                                      G.audio.ctx ,
+                                      G.volumes.love , 
+                                      true );
+
+      G.volumes.norm = G.audio.ctx.createGain();
+      G.volumes.norm.connect( G.audio.gain );
+      G.normLoop = new BufferedAudio( G.normLoopBuffer.buffer , 
+                                      G.audio.ctx ,
+                                      G.volumes.norm , 
+                                      true );
+
+
+      /*
+
+         Default threejs stuff!
+
+      */
+      G.three.scene = new THREE.Scene();
+
+      var ar = window.innerWidth / window.innerHeight;
+
+      G.three.camera = new THREE.PerspectiveCamera( 40, ar , .01, 1000 );
+      G.three.camera.position.z = .5;
+
+      G.three.renderer = new THREE.WebGLRenderer({antialias:true});
+      G.three.renderer.setSize( window.innerWidth, window.innerHeight );
+      //renderer.setPixelRatio( 4.5 )
+
+      G.three.renderer.setClearColor( 0x1a1aff , 1 )
+
+      G.three.renderer.domElement.id = "renderer"
+      document.body.appendChild( G.three.renderer.domElement );
+
+
+      G.three.objectControls = new ObjectControls( G.three.camera );
+
+
+      G.three.controls = new THREE.TrackballControls( G.three.camera );
+
+      G.three.controls = new THREE.MouseMoveControls( G.three.camera );
+
+
+
+      G.three.stats = new Stats();
+      G.three.stats.domElement.style.position = "absolute";
+      G.three.stats.domElement.style.left = "0px";
+      G.three.stats.domElement.style.bottom = "-30px";
+      G.three.stats.domElement.style.zIndex = "999";
+      //document.body.appendChild( G.three.stats.domElement );
+
+
+      window.addEventListener( 'resize', onWindowResize, false );
+
+      G.three.clock = new THREE.Clock();
+
+
+      var fs = G.shaders.setValue( G.shaders.fs.trace , 'links' , G.TOTAL_LINKS );
+      var vs = G.shaders.setValue( G.shaders.vs.trace    , 'links' , G.TOTAL_LINKS );
+
+
+      var mat = new THREE.ShaderMaterial({
+        uniforms: G.uniforms,
+        vertexShader: vs,
+        fragmentShader: fs,
+      })
+
+
+      G.mainBody = new THREE.Mesh( G.faceGeo , mat );
+      G.three.scene.add( G.mainBody );
+      G.mainBody.rotation.z = Math.PI;
+      G.mainBody.rotation.y = Math.PI;
+      G.mainBody.position.x = 0;
+      G.mainBody.position.y = 0;
+      //G.mainBody.scale.multiplyScalar( 5 );
+      G.mainBody.visible = false;
+
+
+      G.highBody = new THREE.Mesh( G.highGeo , mat );
+
+      G.three.scene.add( G.highBody );
+      G.highBody.rotation.z = Math.PI;
+      G.highBody.rotation.y = Math.PI;
+      G.highBody.position.x = 0;
+      G.highBody.position.y = 0;
+
+      var mat = new THREE.MeshBasicMaterial({transparent:true,opacity:0});
+      G.controlBod = new THREE.Mesh( G.highGeo , mat );
+      G.controlBod.rotation.z = Math.PI;
+      G.controlBod.rotation.y = Math.PI;
+      G.controlBod.position.x = 0;
+      G.controlBod.position.y = 0;
+      G.three.scene.add( G.controlBod )
+
+
+
+
+      G.controlBod.hoverOver = function(){
+        
+        G.mainBody.visible = true;
+        G.highBody.visible = false;
+      }
+
+      G.controlBod.hoverOut = function(){
+     
+        G.mainBody.visible = false;
+        G.highBody.visible = true;
+      }
+
+
+      var geo = new THREE.IcosahedronGeometry( .03 , 4 );
+      var mat = new THREE.ShaderMaterial({
+        uniforms: G.uniforms,
+        vertexShader: G.shaders.vs.halo,
+        fragmentShader: G.shaders.fs.halo,
+      });
+
+      mandala = [];
+
+      for( var j = 0; j < 5; j++){
+        var obj = new THREE.Object3D();
+
+        for( var i = 0; i < 10; i++ ){
+
+          var mesh = new THREE.Mesh( geo , mat );
+
+          mesh.rotation.z = (i / 10 ) * 2 * Math.PI;
+          obj.add( mesh );
+          mandala.push( mesh );
+        }
+
+        obj.position.z = -.2 + .2 * (-j / 5);
+        obj.scale.multiplyScalar( ((j+1) / 5) * 4. );
+
+        obj.rotation.x = Math.random();
+        obj.rotation.y = Math.random();
+        obj.rotation.z = Math.random();
+        obj.lookAt( new THREE.Vector3());
+        G.three.scene.add( obj );
+
+
+
+      }
+
+
+
+
+  }
+
+  function animate(){
+
+    requestAnimationFrame( animate );
+
+    G.life = G.slider.life;
+    convertLife();
+    updateVolumes();
+    updateUniforms();
+    convertLifeToRenderColor();
+
+
+
+
+    G.three.controls.update();
+    G.three.objectControls.update();
+
+    G.audio.update();
+
+    TWEEN.update();
+
+
+    G.three.renderer.render( G.three.scene , G.three.camera );
+    G.three.stats.update();
+
+
+  }
+
+  function updateUniforms(){
+
+    G.uniforms.time.value += G.three.clock.getDelta();
+    
+    G.mainBody.updateMatrixWorld();
+    G.uniforms.iModelMat.value.getInverse( G.mainBody.matrixWorld );
+
+    G.uniforms.pain.value = G.pain;
+    G.uniforms.love.value = G.love;
+    G.uniforms.norm.value = G.norm;
+
+   
+  }
+
+  function convertLifeToRenderColor(){
+
+    G.three.renderer.setClearColor( 0x1a1aff , 1 - .8 * G.life );
+
+  }
+
+
+
+  function onWindowResize() {
+
+    G.three.camera.aspect = window.innerWidth / window.innerHeight;
+    G.three.camera.updateProjectionMatrix();
+
+    G.three.renderer.setSize( window.innerWidth, window.innerHeight );
+
+
+  }
+
+function makeNewUniforms(newPropt , newUniform ){
+
+  var uni = {};
+  for( var propt in G.uniforms){
+    uni[propt] = G.uniforms[propt];
+  }
+
+  uni[newPropt] = newUniform;
+
+  return uni;
+
+
+
+}
+
+function setUpGlobal(){
+
+  G = {
+
+    link:[],
+    audioBuffers:[],
+
+    loading:{
+
+      loaded:0,
+      neededToLoad:0
+
+    },
+
+    TOTAL_LINKS: 5,
+
+  };
+
+  G.pain = 0;
+  G.norm = 1;
+  G.love = 0;
+  G.life = 0;
+
+  G.three = {
+
+    scene           : undefined,
+    camera          : undefined,
+    renderer        : undefined,
+    clock           : undefined,
+    controls        : undefined,
+    objectControls  : undefined,
+
+  }
+
+  var iPoint;
+
+
+  G.shaders = new ShaderLoader( 'shaders' , 'shaders/chunks' );
+  G.v1      = new THREE.Vector3();
+
+
+
+  /*
+
+     Setting up Audio
+
+  */
+  G.audio = new AudioController();
+
+
+
+
+  G.controlMat = new THREE.MeshBasicMaterial();
+  G.controlGeo = new THREE.IcosahedronGeometry(.03 , 2);
+
+
+  TWEEN.origTween = TWEEN.Tween;
+  TWEEN.Tween = function (options){
+    var res = new TWEEN.origTween(options);
+    res.easing(TWEEN.Easing.Quadratic.InOut);
+    return res;
+  };
+
+
+  G.v1 = new THREE.Vector3();
+
+}
+
+function beginLoad(){
+  loadShaders();
+  loadImages();
+  loadModels();
+  loadAudio();
+}
+
+function loadShaders(){
+
+  //shaders.load( 'ss-curlFront'    , 'sim'    , 'simulation' );
+
+  G.loading.neededToLoad ++;
+
+  G.shaders.load( 'fs-eyeTrace'  , 'trace' , 'fragment' );
+  G.shaders.load( 'vs-trace'  , 'trace' , 'vertex'   );
+
+  G.shaders.load( 'vs-halo' , 'halo' , 'vertex' );
+  G.shaders.load( 'fs-halo' , 'halo' , 'fragment' );
+
+  
+  G.shaders.shaderSetLoaded = function(){
+    onLoad();
+  }
+
+}
+
+
+
+function loadImage(url){
+
+  G.loading.neededToLoad ++;
+  var r = THREE.RepeatWrapping;
+  return THREE.ImageUtils.loadTexture(url, r , onLoad, onError);
+
+}
+
+function loadImages(){
+
+  G.textures = {};
+
+  G.textures.matcap   = loadImage('img/rough-aluminium.jpg');
+  G.textures.normal   = loadImage('img/t_n_snakeSkin.png' );
+  G.textures.colorTex = loadImage('assets/Model.jpg' );
+
+}
+
+function loadModels(){
+
+  G.loading.neededToLoad += 2;
+
+  var loader = new THREE.OBJLoader();
+  var faceGeo,highGeo;
+  loader.load( 'assets/low.obj', function ( object ) {
+
+
+    object.traverse( function ( child ) {
+
+      if ( child instanceof THREE.Mesh ) {
+
+        if( child.name == "Model"){
+
+          G.faceGeo = child.geometry
+          G.faceGeo.computeFaceNormals();
+          G.faceGeo.computeVertexNormals();
+
+        }
+
+      }
+
+    } );
+
+    onLoad();
+
+  }, onProgress, onError );
+
+
+  loader.load( 'assets/high.obj', function ( object ) {
+
+
+    object.traverse( function ( child ) {
+
+      if ( child instanceof THREE.Mesh ) {
+
+        if( child.name == "Model"){
+
+          G.highGeo = child.geometry
+          G.highGeo.computeFaceNormals();
+          G.highGeo.computeVertexNormals();
+
+        }
+
+      }
+
+    } );
+
+    onLoad();
+
+  }, onProgress, onError );
+
+}
+
+function loadAudio(){
+
+  loadBuffer( "loveLoopBuffer"  , "audio/love.mp3"      );
+  loadBuffer( "painLoopBuffer"  , "audio/pain.mp3"      );
+  loadBuffer( "normLoopBuffer"  , "audio/norm.mp3"      );
+
+  loadBuffer( "clickNoteBuffer" , "audio/switch.mp3"    );
+  loadBuffer( "startNoteBuffer" , "audio/startNote.mp3" );
+
+}
+
+function loadBuffer(name , bufferFile){
+
+  var aBuff = new AudioBuffer( G.audio , bufferFile);
+  G[name] = aBuff;
+  G.loading.neededToLoad += 1;
+  aBuff.addLoadEvent(function(){
+    onLoad();
+  })
+
+}
+
+function onLoad(){
+
+  G.loading.loaded ++;
+
+  console.log( G.loading );
+
+
+  if( G.loading.loaded == G.loading.neededToLoad ){
+
+    finishedLoading();
+
+  }
+
+}
+
+// TODO: these catch?
+function onProgress(e){
+  console.log( e );
+}
+
+function onError(e){
+  console.log( e );
+}
+
+function finishedLoading(){
+  init(); 
+  start();
+}
+
+function start(){
+  G.painLoop.play();
+  G.volumes.pain.gain.value = 0;
+  G.loveLoop.play();
+  G.volumes.love.gain.value = 0;
+  G.normLoop.play();
+
+  G.startNote.play();
+
+  animate();
+}
+
+function startTween( time ){
+
+
+}
+
+function convertLife(){
+
+  var loveStartVal = .9;
+  var loveFullVal  = 1;
+
+  var painStartVal = 0;
+  var painFullVal = .9;
+
+  if( G.life < .9 ){
+    G.pain = Math.min( G.life / .9 , 1 ); 
+  }else{
+    G.pain = Math.max( 1. - (G.life - .9) * 20. , 0 ); 
+  }
+
+  G.norm = Math.max( 1.0 - G.life / .9 , 0 );
+  G.love = Math.max( (G.life - .9) * 10 , 0.)
+
+
+}
+
+function updateVolumes(){
+  G.volumes.love.gain.value = G.love;
+  G.volumes.pain.gain.value = G.pain * 2;
+  G.volumes.norm.gain.value = G.norm;
+}
+
+function tweenLife( endVal , time ){
+
+  //changeNote.play();
+
+  var start = G.life;
+  var end = endVal
+  var dif = end - start;
+  var tween = new TWEEN.Tween( 0 ).to(1 , time );
+
+ 
+  tween.onUpdate(function(t){
+    console.log( dif );
+    G.life = t * dif + start;
+    //console.log( e );
+  }.bind( this));
+
+  tween.onComplete( function(){
+
+  })
+
+  tween.start();
+
+}
+
+</script>
+ 
+
+
+
+</body>
+<html>
