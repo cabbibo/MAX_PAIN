@@ -4,9 +4,18 @@ uniform sampler2D t_audio;
 
 uniform sampler2D t_matcap;
 uniform sampler2D t_normal;
+uniform sampler2D t_color;
 
 uniform mat4 modelViewMatrix;
 uniform mat3 normalMatrix;
+
+uniform float life;
+uniform float norm;
+uniform float pain;
+uniform float love;
+
+uniform vec3 lightPos;
+
 
 varying vec3 vPos;
 varying vec3 vCam;
@@ -19,6 +28,15 @@ varying vec2 vUv;
 varying float vNoise;
 
 
+#define LINKS @links
+
+varying vec4 vLinks[LINKS];
+
+
+uniform vec4 links[LINKS];
+varying vec4 vHovered;
+varying vec4 vActive;
+
 $uvNormalMap
 $semLookup
 
@@ -26,14 +44,33 @@ $semLookup
 // Branch Code stolen from : https://www.shadertoy.com/view/ltlSRl
 // Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
 
-const float MAX_TRACE_DISTANCE = 5.0;             // max trace distance
-const float INTERSECTION_PRECISION = 0.01;        // precision of the intersection
+const float MAX_TRACE_DISTANCE = 1.0;             // max trace distance
+const float INTERSECTION_PRECISION = 0.001;        // precision of the intersection
 const int NUM_OF_TRACE_STEPS = 25;
 const float PI = 3.14159;
 
 
 
 $smoothU
+$opU
+
+vec3 rgb2hsv(vec3 c)
+{
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv(float h, float s, float v)
+{
+    
+  return mix( vec3( 1.0 ), clamp( ( abs( fract(
+    h + vec3( 3.0, 2.0, 1.0 ) / 3.0 ) * 6.0 - 3.0 ) - 1.0 ), 0.0, 1.0 ), s ) * v;
+}
 
 
 //--------------------------------
@@ -44,15 +81,30 @@ vec2 map( vec3 pos ){
     vec2 res = vec2( 1000000. , 0. );
 
 
+    //vec2 centerBlob = vec2( length( pos - vec3( 0. , -0.03 , .05 ) ) - .03, 1. );
+   // res = smoothU( res , centerBlob , .2 );
+
+    for( int i = 0; i< LINKS; i++ ){
+
+      vec2 centerBlob = vec2( length( pos - vLinks[i].xyz ) - .02, float( i ) );
+      res = smoothU( res , centerBlob , .05 );
+    }
+
+    if( vHovered.w > 0. ){
+      vec2 centerBlob = vec2( length( pos - vHovered.xyz ) - .023 * vHovered.w, 10. );
+      res = opU( res , centerBlob  );
+    }
+
+    if( vActive.w > 0. ){
+      vec2 centerBlob = vec2( length( pos - vActive.xyz ) - .025 * vActive.w, 11. );
+      res = opU( res , centerBlob  );
+    }
 
 
-    pos.x += .1 * sin( pos.x * 40. );
-    pos.y += .1 * sin( pos.y * 40. );
-    pos.z += .1 * sin( pos.z * 40. );
 
-    vec2 centerBlob = vec2( length( pos  ) - .1 , 1. );
 
-    res = smoothU( res , centerBlob , .2 );
+
+
 
     return res;
     
@@ -64,11 +116,32 @@ $calcNormal
 $calcAO
 
 
+vec3 normCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl ){
 
+  float lamb = dot( norm , normalize(lightDir));
+
+  vec4 col = vec4( 0 , 0 , 0 , 0);
+//float alpha = 0
+
+
+  if( lamb > .3 ){ col = vec4( 0 , 0.3, 6 , .4);}
+  if( lamb > .6 ){ col = vec4( 0 , 0, 1, 0); }
+  return col.xyz ;
+
+
+}
+
+vec3 painCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl ){
+  return vec3( dot( norm , normalize(lightDir) ) , 0. , 0. );
+}
+
+vec3 loveCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl ){
+  return vec3( 1. , 1. , 1. );
+}
 
 void main(){
 
-  vec3 fNorm = uvNormalMap( t_normal , vPos , vUv * 20. , vNorm , .6 , -.1 );
+  vec3 fNorm = uvNormalMap( t_normal , vPos , vUv * 20. , vNorm , .4 * pain , 20.2 * pain * pain);
 
   vec3 ro = vPos;
   vec3 rd = normalize( vPos - vCam );
@@ -76,42 +149,58 @@ void main(){
   vec3 p = vec3( 0. );
   vec3 col =  vec3( 0. );
 
+  vec3 uvCol = texture2D( t_color , vUv ).xyz;
+
+
   float m = max(0.,dot( -rd , fNorm ));
 
   //col += fNorm * .5 + .5;
 
-  vec3 refr = refract( rd , fNorm , 1. / 1.) ;
+  vec3 refr = refract( rd , fNorm , 1. / 1.1 ) ;
 
   vec2 res = calcIntersection( ro , refr );
 
-  col = fNorm * .5 + .5;
+  vec3 lightDir = lightPos-vPos;
+  vec3 refl = reflect( lightDir , fNorm );
 
+  //col = texture2D( t_matcap , semLookup( refr , fNorm , modelViewMatrix , normalMatrix ) ).xyz;
+ 
+  float fr = 1. + dot( fNorm, rd );
+  col = texture2D( t_audio , vec2( fr , 0.)).xyz * fr;
+  float alpha =  .1;
   if( res.y > -.5 ){
+
+    if( res.y < 10. ){
 
     p = ro + refr * res.x;
     vec3 n = calcNormal( p );
 
     //col += n * .5 + .5;
+    vec3 h = hsv( res.y / 4. , 1. , 1. );
+    col += h *  texture2D( t_matcap , semLookup( refr , n , modelViewMatrix , normalMatrix ) ).xyz;
 
-    col +=  texture2D( t_matcap , semLookup( refr , n , modelViewMatrix , normalMatrix ) ).xyz;
+    alpha = 1.;
 
-    //col *= texture2D( t_audio , vec2(  abs( n.x ) , 0. ) ).xyz;
+    }else{
+
+      if( res.y == 10. ){
+        col = vec3( 1. ) - col; //vec3( 1. );
+      }else{
+        col = vec3( 1. , .5 , .5 ) - col; //vec3( 1. )
+
+      }
+
+    }
 
   }
 
+  vec3 nCol = normCol( fNorm , ro , rd , lightDir , refl );
+  vec3 pCol = painCol( fNorm , ro , rd , lightDir , refl );
+  vec3 lCol = loveCol( fNorm , ro , rd , lightDir , refl );
 
+  col = nCol  * norm + pCol * pain + lCol * love;
 
 
   gl_FragColor = vec4( col , 1. );
 
 }
-
-
-
-
-
-
-
-
-
-

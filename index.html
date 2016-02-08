@@ -124,6 +124,8 @@
         love:{type:"f", value:0},
         norm:{type:"f", value:0},
 
+        lightPos:{type:"v3",value:new THREE.Vector3( 1 , 1 , -1 )}
+
 
       }
 
@@ -343,7 +345,8 @@
 
   function convertLifeToRenderColor(){
 
-    G.three.renderer.setClearColor( 0x1a1aff , 1 - .8 * G.life );
+    var c = getBackgroundColor(G.life);
+    G.three.renderer.setClearColor( c , 1 );
 
   }
 
@@ -396,6 +399,12 @@ function setUpGlobal(){
   G.norm = 1;
   G.love = 0;
   G.life = 0;
+
+  G.colors = {
+    pain: new THREE.Color(0xff0000),
+    love: new THREE.Color(0xffffff),
+    norm: new THREE.Color(0x0000ff),
+  }
 
   G.three = {
 
@@ -455,7 +464,7 @@ function loadShaders(){
 
   G.loading.neededToLoad ++;
 
-  G.shaders.load( 'fs-eyeTrace'  , 'trace' , 'fragment' );
+  G.shaders.load( 'fs-trace'  , 'trace' , 'fragment' );
   G.shaders.load( 'vs-trace'  , 'trace' , 'vertex'   );
 
   G.shaders.load( 'vs-halo' , 'halo' , 'vertex' );
@@ -474,7 +483,10 @@ function loadImage(url){
 
   G.loading.neededToLoad ++;
   var r = THREE.RepeatWrapping;
-  return THREE.ImageUtils.loadTexture(url, r , onLoad, onError);
+
+  var t = THREE.ImageUtils.loadTexture(url, r , onLoad, onError);
+  t.wrapT = t.wrapS = THREE.RepeatWrapping;
+  return t;
 
 }
 
@@ -613,21 +625,64 @@ function startTween( time ){
 
 function convertLife(){
 
-  var loveStartVal = .9;
+  var loveStartVal = .95;
   var loveFullVal  = 1;
 
   var painStartVal = 0;
   var painFullVal = .9;
 
-  if( G.life < .9 ){
-    G.pain = Math.min( G.life / .9 , 1 ); 
+  if( G.life < loveStartVal ){
+    G.pain = Math.min( G.life / loveStartVal , 1 ); 
   }else{
-    G.pain = Math.max( 1. - (G.life - .9) * 20. , 0 ); 
+    G.pain = Math.max( 1. - (G.life - loveStartVal) * 80. , 0 ); 
   }
 
-  G.norm = Math.max( 1.0 - G.life / .9 , 0 );
-  G.love = Math.max( (G.life - .9) * 10 , 0.)
+  G.norm = Math.max( 1.0 - G.life / loveStartVal , 0 );
+  G.love = Math.min(Math.max( (G.life - loveStartVal) * 4.2 / ( 1-loveStartVal) , 0.) , 1. )
 
+console.log( G.life )
+  console.log( G.norm );
+  console.log( G.pain );
+  console.log( G.love );
+  //console.log( G.life )
+
+
+}
+
+function getBackgroundColor( life ){
+
+  
+  var n = G.colors.norm.getHSL();
+  var p = G.colors.pain.getHSL();
+  var l = G.colors.love.getHSL();
+
+  var fH = n.h * G.norm + p.h * G.pain + l.h * G.love;
+  var fS = n.s * G.norm + p.s * G.pain + l.s * G.love;
+  var fL = n.l * G.norm + p.l * G.pain + l.l * G.love;
+
+  var color = new THREE.Color().setHSL( fH , fS , fL );
+
+  var hex = color.getHex();
+
+
+  var n = G.colors.norm;
+  var p = G.colors.pain;
+  var l = G.colors.love;
+
+  var fH = n.r * G.norm + p.r * G.pain + l.r * G.love;
+  var fS = n.g * G.norm + p.g * G.pain + l.g * G.love;
+  var fL = n.b * G.norm + p.b * G.pain + l.b * G.love;
+
+  var color = new THREE.Color().setRGB( fH , fS , fL );
+
+  var hex = color.getHex();
+
+
+
+
+  //G.renderer.
+
+  return hex;
 
 }
 
@@ -660,6 +715,8 @@ function tweenLife( endVal , time ){
   tween.start();
 
 }
+
+
 
 </script>
  

@@ -13,6 +13,8 @@ function Slider(){
   this.x = 0;
   this.down;
 
+  this.life = 0;
+
   this.mainBody.onmouseover = function(){
     console.log("Sss");
   }
