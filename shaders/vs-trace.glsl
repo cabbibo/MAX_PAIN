@@ -1,6 +1,16 @@
 
 uniform mat4 iModelMat;
 uniform float time;
+uniform float started;
+uniform sampler2D t_audio;
+
+uniform float life;
+uniform float norm;
+uniform float pain;
+uniform float love;
+uniform vec3 lightPos;
+
+
 
 varying vec3 vPos;
 varying vec3 vNorm;
@@ -22,6 +32,8 @@ varying vec4 vLinks[LINKS];
 varying vec4 vHovered;
 varying vec4 vActive;
 
+varying vec3 vAudio;
+
 $simplex
 
 
@@ -31,11 +43,18 @@ void main(){
 
   vUv = uv;
 
-  vPos = position;
+  vPos = position + normal * (1. - started);
+
+  float fr = max(0.,dot( normal , normalize(lightPos - cameraPosition)));
+  vec3 aCol = texture2D( t_audio , vec2( fr , 0 )).xyz;
+  vAudio = aCol;
+  vPos += aCol * .003 * norm;
+  vPos -=  normal * length( aCol ) * length( aCol ) * length( aCol ) * .0002 * pain;
+  vPos += normal * love * .4; //+ vec3( 0 , 0 , .2 )* love;
   vNorm = normal;
 
   vMNorm = normalMatrix * normal;
-  vMPos = (modelMatrix * vec4( position , 1. )).xyz;
+  vMPos = (modelMatrix * vec4( vPos , 1. )).xyz;
 
   vCam   = ( iModelMat * vec4( cameraPosition , 1. ) ).xyz;
 
@@ -58,6 +77,6 @@ void main(){
 
 
   // Use this position to get the final position 
-  gl_Position = projectionMatrix * modelViewMatrix * vec4( position , 1.);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4( vPos , 1.);
 
 }

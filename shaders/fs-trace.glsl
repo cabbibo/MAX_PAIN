@@ -27,6 +27,8 @@ varying vec3 vMPos;
 varying vec2 vUv;
 varying float vNoise;
 
+varying vec3 vAudio;
+
 
 #define LINKS @links
 
@@ -45,14 +47,15 @@ $semLookup
 // Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
 
 const float MAX_TRACE_DISTANCE = 1.0;             // max trace distance
-const float INTERSECTION_PRECISION = 0.001;        // precision of the intersection
-const int NUM_OF_TRACE_STEPS = 25;
+const float INTERSECTION_PRECISION = 0.0001;        // precision of the intersection
+const int NUM_OF_TRACE_STEPS = 50;
 const float PI = 3.14159;
 
 
 
 $smoothU
 $opU
+$pNoise
 
 vec3 rgb2hsv(vec3 c)
 {
@@ -81,24 +84,30 @@ vec2 map( vec3 pos ){
     vec2 res = vec2( 1000000. , 0. );
 
 
-    //vec2 centerBlob = vec2( length( pos - vec3( 0. , -0.03 , .05 ) ) - .03, 1. );
-   // res = smoothU( res , centerBlob , .2 );
+    float nVal = pNoise( pos * 90.0  * pain + vec3( 0, time * pain , 0) );
 
-    for( int i = 0; i< LINKS; i++ ){
+    vec3 aVal = texture2D( t_audio , vec2( abs(nVal) , 0.)).xyz;
+    nVal *= length( aVal ) * length( aVal ) * pain * .01;
 
-      vec2 centerBlob = vec2( length( pos - vLinks[i].xyz ) - .02, float( i ) );
-      res = smoothU( res , centerBlob , .05 );
-    }
 
-    if( vHovered.w > 0. ){
-      vec2 centerBlob = vec2( length( pos - vHovered.xyz ) - .023 * vHovered.w, 10. );
-      res = opU( res , centerBlob  );
-    }
+    vec2 centerBlob = vec2( length( pos - vec3( 0. , -0.03 , .05 ) ) - .055 * ((pain)+.5) + nVal , 1. );
+    res = smoothU( res , centerBlob , .2 );
 
-    if( vActive.w > 0. ){
-      vec2 centerBlob = vec2( length( pos - vActive.xyz ) - .025 * vActive.w, 11. );
-      res = opU( res , centerBlob  );
-    }
+    //for( int i = 0; i< LINKS; i++ ){
+//
+    //  vec2 centerBlob = vec2( length( pos - vLinks[i].xyz ) - .02, float( i ) );
+    //  res = smoothU( res , centerBlob , .05 );
+    //}
+//
+    //if( vHovered.w > 0. ){
+    //  vec2 centerBlob = vec2( length( pos - vHovered.xyz ) - .023 * vHovered.w, 10. );
+    //  res = opU( res , centerBlob  );
+    //}
+//
+    //if( vActive.w > 0. ){
+    //  vec2 centerBlob = vec2( length( pos - vActive.xyz ) - .025 * vActive.w, 11. );
+    //  res = opU( res , centerBlob  );
+    //}
 
 
 
@@ -116,32 +125,77 @@ $calcNormal
 $calcAO
 
 
-vec3 normCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl ){
+vec3 normCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl , vec2 res ){
 
   float lamb = dot( norm , normalize(lightDir));
 
-  vec4 col = vec4( 0 , 0 , 0 , 0);
+  vec3 col = texture2D( t_audio , vec2( lamb , 0. )).xyz * lamb;//vec3( 0 , 0 , 0 );
+
 //float alpha = 0
 
 
-  if( lamb > .3 ){ col = vec4( 0 , 0.3, 6 , .4);}
-  if( lamb > .6 ){ col = vec4( 0 , 0, 1, 0); }
-  return col.xyz ;
+  //if( lamb > .3 ){ col = vec3( 0 , 0.3, 6);}
+  //if( lamb > .6 ){ col = vec3( 0 , 0, 1); }
+
+  if( res.y > -.5 ){
+
+    vec3 p = ro + rd * res.x;
+    vec3 n = calcNormal( p );
+
+    //col = texture2D( t_matcap , semLookup( rd , n , modelViewMatrix , normalMatrix ) ).xyz;
+
+    vec3 aCol = texture2D( t_audio , semLookup( rd , n , modelViewMatrix , normalMatrix ) ).xyz;
+  
+    if( length(col) < .5 ){
+      col =  aCol * aCol * aCol;
+    }
+
+  }
+
+  col *= vec3( .4, .4, 1.);
+
+  return col;
 
 
 }
 
-vec3 painCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl ){
-  return vec3( dot( norm , normalize(lightDir) ) , 0. , 0. );
+vec3 painCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl , vec2 res ){
+  
+  //vec3 col = vec3( 0. );//vec3( dot( norm , normalize(lightDir) ) , 0. , 0. );
+  float fr = max( 0. , dot( -norm , rd ));
+  fr = 1. - fr;
+  vec3 col = fr * vec3( .3 , 0., 0. );//texture2D( t_audio , vec2( fr * .1 , 0.)).xyz * fr;
+  if( res.y > -.5 ){
+
+    vec3 p = ro + rd * res.x;
+    vec3 n = calcNormal( p );
+
+    //col = texture2D( t_matcap , semLookup( rd , n , modelViewMatrix , normalMatrix ) ).xyz;
+
+    vec3 aCol = texture2D( t_audio , semLookup( rd , n , modelViewMatrix , normalMatrix ) ).xyz;
+  
+    col += vec3( .6 , 0. , 0. ) *  aCol * aCol * aCol * dot( n , rd );
+  }
+
+  col += length( vAudio ) * length( vAudio ) * length( vAudio ) * vec3( .1 , 0. , 0.);
+
+  return col;
+
 }
 
-vec3 loveCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl ){
-  return vec3( 1. , 1. , 1. );
+vec3 loveCol(vec3 norm , vec3 ro , vec3 rd , vec3 lightDir , vec3 refl , vec2 res ){
+
+
+  float lamb = dot( norm , normalize(lightDir));
+
+  vec3 col = texture2D( t_audio , vec2( lamb , 0. )).xyz * lamb;//vec3( 0 , 0 , 0 );
+
+  return vec3( 1. );// - col; //normalize(  col ); //vec3( 1. , 1. , 1. );
 }
 
 void main(){
 
-  vec3 fNorm = uvNormalMap( t_normal , vPos , vUv * 20. , vNorm , .4 * pain , 20.2 * pain * pain);
+  vec3 fNorm = uvNormalMap( t_normal , vPos , vUv * 20. , vNorm , .4 * pain , .6 * pain * pain);
 
   vec3 ro = vPos;
   vec3 rd = normalize( vPos - vCam );
@@ -156,7 +210,7 @@ void main(){
 
   //col += fNorm * .5 + .5;
 
-  vec3 refr = refract( rd , fNorm , 1. / 1.1 ) ;
+  vec3 refr = rd; //refract( rd , fNorm , 1. / (1.1 - .1 * pain ) );
 
   vec2 res = calcIntersection( ro , refr );
 
@@ -194,9 +248,9 @@ void main(){
 
   }
 
-  vec3 nCol = normCol( fNorm , ro , rd , lightDir , refl );
-  vec3 pCol = painCol( fNorm , ro , rd , lightDir , refl );
-  vec3 lCol = loveCol( fNorm , ro , rd , lightDir , refl );
+  vec3 nCol = normCol( fNorm , ro , rd , lightDir , refl , res );
+  vec3 pCol = painCol( fNorm , ro , rd , lightDir , refl , res );
+  vec3 lCol = loveCol( fNorm , ro , rd , lightDir , refl , res );
 
   col = nCol  * norm + pCol * pain + lCol * love;
 

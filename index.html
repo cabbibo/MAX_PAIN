@@ -41,7 +41,7 @@
       height:28px;
       width:28px;
       border-radius: 50%;
-      background:#1a1aff;
+      background:#000000;
       z-index: 999;
     }
 
@@ -124,24 +124,31 @@
         love:{type:"f", value:0},
         norm:{type:"f", value:0},
 
-        lightPos:{type:"v3",value:new THREE.Vector3( 1 , 1 , -1 )}
+        lightPos:{type:"v3",value:new THREE.Vector3( 1 , 1 , -1 )},
+        started:{type:"f", value:0},
 
 
       }
 
       G.uniforms.t_audio.value = G.audio.texture;
 
-      G.clickNote = new BufferedAudio(  G.clickNoteBuffer.buffer , 
-                                        G.audio.ctx ,
-                                        G.audio.gain , 
-                                        false );
-
-      G.startNote = new BufferedAudio(  G.startNoteBuffer.buffer , 
-                                        G.audio.ctx ,
-                                        G.audio.gain , 
-                                        false );
+      
 
       G.volumes = {};
+
+      G.volumes.click = G.audio.ctx.createGain();
+      G.volumes.click.connect( G.audio.gain );
+      G.clickNote = new BufferedAudio(  G.clickNoteBuffer.buffer , 
+                                        G.audio.ctx ,
+                                        G.volumes.click , 
+                                        false );
+
+      G.volumes.start = G.audio.ctx.createGain();
+      G.volumes.start.connect( G.audio.gain );
+      G.startNote = new BufferedAudio(  G.startNoteBuffer.buffer , 
+                                        G.audio.ctx ,
+                                        G.volumes.start , 
+                                        false );
 
 
       G.volumes.pain = G.audio.ctx.createGain();
@@ -270,7 +277,7 @@
         fragmentShader: G.shaders.fs.halo,
       });
 
-      mandala = [];
+      G.mandala = [];
 
       for( var j = 0; j < 5; j++){
         var obj = new THREE.Object3D();
@@ -281,7 +288,8 @@
 
           mesh.rotation.z = (i / 10 ) * 2 * Math.PI;
           obj.add( mesh );
-          mandala.push( mesh );
+          G.mandala.push( mesh );
+          mesh.visible = false;
         }
 
         obj.position.z = -.2 + .2 * (-j / 5);
@@ -292,7 +300,6 @@
         obj.rotation.z = Math.random();
         obj.lookAt( new THREE.Vector3());
         G.three.scene.add( obj );
-
 
 
       }
@@ -311,9 +318,6 @@
     updateVolumes();
     updateUniforms();
     convertLifeToRenderColor();
-
-
-
 
     G.three.controls.update();
     G.three.objectControls.update();
@@ -347,7 +351,6 @@
 
     var c = getBackgroundColor(G.life);
     G.three.renderer.setClearColor( c , 1 );
-
   }
 
 
@@ -401,9 +404,11 @@ function setUpGlobal(){
   G.life = 0;
 
   G.colors = {
-    pain: new THREE.Color(0xff0000),
+
+    norm: new THREE.Color(0x1a1aff),
+    pain: new THREE.Color(0x550000),
     love: new THREE.Color(0xffffff),
-    norm: new THREE.Color(0x0000ff),
+    
   }
 
   G.three = {
@@ -607,18 +612,58 @@ function finishedLoading(){
 }
 
 function start(){
+
+
+  G.startNote.play();
+
+  animate();
+
+  startTween(100);
+
+}
+
+function startTween( time ){
+
+  var start = G.life;
+  var end = 0
+  var dif = end - start;
+  var tween = new TWEEN.Tween( 0 ).to(1 , time );
+
+ 
+  tween.onUpdate(function(t){
+    G.volumes.start.gain.value = 1-t;
+
+    G.uniforms.started.value = t;
+    //G.life = t * dif + start;
+    //console.log( e );
+  }.bind( this));
+
+  tween.onComplete( function(){
+      trueStart();
+  })
+
+  tween.start();
+
+
+
+}
+
+function trueStart(){
+
+  for( var i = 0; i < G.mandala.length; i++ ){
+    G.mandala[i].visible = true;
+  }
+
+  G.clickNote.play();
+
   G.painLoop.play();
   G.volumes.pain.gain.value = 0;
   G.loveLoop.play();
   G.volumes.love.gain.value = 0;
   G.normLoop.play();
 
-  G.startNote.play();
+  G.slider.addToDoc();
 
-  animate();
-}
-
-function startTween( time ){
 
 
 }
@@ -629,22 +674,17 @@ function convertLife(){
   var loveFullVal  = 1;
 
   var painStartVal = 0;
-  var painFullVal = .9;
+  var painFullVal = .6;
 
   if( G.life < loveStartVal ){
-    G.pain = Math.min( G.life / loveStartVal , 1 ); 
+    G.pain = Math.min( G.life / painFullVal , 1 ); 
   }else{
-    G.pain = Math.max( 1. - (G.life - loveStartVal) * 80. , 0 ); 
+    G.pain = Math.max( 1. - (G.life - loveStartVal) * 30. , 0 ); 
   }
 
-  G.norm = Math.max( 1.0 - G.life / loveStartVal , 0 );
-  G.love = Math.min(Math.max( (G.life - loveStartVal) * 4.2 / ( 1-loveStartVal) , 0.) , 1. )
+  G.norm = Math.max( 1.0 - G.life / painFullVal , 0 );
+  G.love = Math.min(Math.max( (G.life - loveStartVal) * 1.2 / ( 1-loveStartVal) , 0.) , 1. )
 
-console.log( G.life )
-  console.log( G.norm );
-  console.log( G.pain );
-  console.log( G.love );
-  //console.log( G.life )
 
 
 }
@@ -669,14 +709,26 @@ function getBackgroundColor( life ){
   var p = G.colors.pain;
   var l = G.colors.love;
 
+
+
   var fH = n.r * G.norm + p.r * G.pain + l.r * G.love;
   var fS = n.g * G.norm + p.g * G.pain + l.g * G.love;
   var fL = n.b * G.norm + p.b * G.pain + l.b * G.love;
+
+
+  fH = Math.max(Math.min(fH , 1) , 0 );
+  fS = Math.max(Math.min(fS , 1) , 0 );
+  fL = Math.max(Math.min(fL , 1) , 0 );
 
   var color = new THREE.Color().setRGB( fH , fS , fL );
 
   var hex = color.getHex();
 
+
+
+ // console.log( color.getHexString());
+  G.slider.filledBody.style.background = "#" + color.getHexString();
+  G.slider.mainBody.style.border = "4px solid #" + color.getHexString();
 
 
 
@@ -688,7 +740,7 @@ function getBackgroundColor( life ){
 
 function updateVolumes(){
   G.volumes.love.gain.value = G.love;
-  G.volumes.pain.gain.value = G.pain * 2;
+  G.volumes.pain.gain.value = G.pain * G.pain * G.pain * G.pain * 2;
   G.volumes.norm.gain.value = G.norm;
 }
 
@@ -705,7 +757,7 @@ function tweenLife( endVal , time ){
   tween.onUpdate(function(t){
     console.log( dif );
     G.life = t * dif + start;
-    //console.log( e );
+    G.slider.setNewPos( G.life );
   }.bind( this));
 
   tween.onComplete( function(){

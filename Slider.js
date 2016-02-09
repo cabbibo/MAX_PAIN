@@ -16,24 +16,21 @@ function Slider(){
   this.life = 0;
 
   this.mainBody.onmouseover = function(){
-    console.log("Sss");
+   // console.log("Sss");
   }
 
   this.mainBody.onmouseout = function(){
-    console.log("ss");
+   // console.log("ss");
   }
 
   document.body.onmousemove = function(e){
-    console.log("moved");
-    console.log( e );
 
     if( this.down == true ){
-
       this.x = e.clientX - 9;
       this.life = this.x / window.innerWidth;
+      this.setNewPos( this.life );
 
-      this.filledBody.style.width = this.x;
-      this.buttonBody.style.left = this.x - 24;
+  
     }
 
   }.bind( this );
@@ -47,12 +44,24 @@ function Slider(){
   }.bind( this );
 
 
-  document.body.appendChild( this.mainBody );
 
   this.mainBody.appendChild( this.filledBody );
   this.mainBody.appendChild( this.buttonBody );
 }
 
+
+Slider.prototype.setNewPos = function(life){
+
+  var pos = life * window.innerWidth;
+  this.life = life;
+  this.x = life * window.innerWidth;
+  this.filledBody.style.width = this.x;
+  this.buttonBody.style.left = this.x - 24;
+}
+
+Slider.prototype.addToDoc = function(){
+  document.body.appendChild( this.mainBody );
+}
 
 Slider.prototype.update = function(){
 
