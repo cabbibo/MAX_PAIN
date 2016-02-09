@@ -43,7 +43,7 @@ void main(){
 
   vUv = uv;
 
-  vPos = position + normal * (1. - started);
+  vPos = position - normal * (.3 - started * .3);
 
   float fr = max(0.,dot( normal , normalize(lightPos - cameraPosition)));
   vec3 aCol = texture2D( t_audio , vec2( fr , 0 )).xyz;

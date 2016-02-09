@@ -13,6 +13,7 @@ uniform float life;
 uniform float norm;
 uniform float pain;
 uniform float love;
+uniform float started;
 
 uniform vec3 lightPos;
 
@@ -56,6 +57,8 @@ void main(){
   vec3 lCol = loveCol();
 
   col = nCol * norm + pCol  * pain + lCol * love;
+
+  col = mix( col , vec3( 0.05 , 0.05 , 1. ), 1.-started);
   gl_FragColor = vec4( col , 1. );
 }
 

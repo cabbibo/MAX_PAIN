@@ -311,24 +311,28 @@
 
   function animate(){
 
-    requestAnimationFrame( animate );
+    if( G.ended == false ){
 
-    G.life = G.slider.life;
-    convertLife();
-    updateVolumes();
-    updateUniforms();
-    convertLifeToRenderColor();
+      requestAnimationFrame( animate );
 
-    G.three.controls.update();
-    G.three.objectControls.update();
+      G.life = G.slider.life;
+      convertLife();
+      updateVolumes();
+      updateUniforms();
+      convertLifeToRenderColor();
 
-    G.audio.update();
+      G.three.controls.update();
+      G.three.objectControls.update();
 
-    TWEEN.update();
+      G.audio.update();
+
+      TWEEN.update();
 
 
-    G.three.renderer.render( G.three.scene , G.three.camera );
-    G.three.stats.update();
+      G.three.renderer.render( G.three.scene , G.three.camera );
+      G.three.stats.update();
+
+    }
 
 
   }
@@ -397,6 +401,8 @@ function setUpGlobal(){
     TOTAL_LINKS: 5,
 
   };
+
+  G.ended = false;
 
   G.pain = 0;
   G.norm = 1;
@@ -618,7 +624,54 @@ function start(){
 
   animate();
 
-  startTween(100);
+  startTween(10000);
+
+}
+
+function end(){
+
+  G.startNote.play();
+  endTween( 10000 );
+
+}
+
+function endTween( time ){
+  var tween = new TWEEN.Tween( 0 ).to(1 , time );
+
+  var sL = G.volumes.love.gain.value;
+  var sP = G.volumes.pain.gain.value;
+  var sN = G.volumes.norm.gain.value;
+  var startLife = G.life;
+
+  tween.onUpdate(function(t){
+
+    G.volumes.start.gain.value = t;
+    G.uniforms.started.value = 1-t;
+    G.volumes.love.gain.value = sL * ( 1 - t);
+    G.volumes.pain.gain.value = sP * ( 1 - t);
+    G.volumes.norm.gain.value = sN * ( 1 - t);
+
+    G.life = startLife * ( 1 - t );
+
+    G.slider.setNewPos( G.life );
+
+  }.bind( this));
+
+  tween.onComplete( function(){
+    trueEnd();
+  })
+
+  tween.start();
+}
+
+function trueEnd(){
+  console.log( "DONE" );
+
+  G.volumes.love.gain.value = 0;
+  G.volumes.pain.gain.value = 0;
+  G.volumes.norm.gain.value = 0;
+
+  G.ended = true;
 
 }
 
@@ -720,7 +773,10 @@ function getBackgroundColor( life ){
   fS = Math.max(Math.min(fS , 1) , 0 );
   fL = Math.max(Math.min(fL , 1) , 0 );
 
+
+
   var color = new THREE.Color().setRGB( fH , fS , fL );
+  color.lerp( G.colors.norm ,1-G.uniforms.started.value );
 
   var hex = color.getHex();
 
