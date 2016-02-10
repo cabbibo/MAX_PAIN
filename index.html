@@ -151,6 +151,15 @@
                                         false );
 
 
+
+      G.volumes.jest = G.audio.ctx.createGain();
+      G.volumes.jest.connect( G.audio.gain );
+      G.jestNote = new BufferedAudio(  G.jestNoteBuffer.buffer , 
+                                        G.audio.ctx ,
+                                        G.volumes.jest , 
+                                        false );
+
+
       G.volumes.pain = G.audio.ctx.createGain();
       G.volumes.pain.connect( G.audio.gain );
       G.painLoop = new BufferedAudio( G.painLoopBuffer.buffer , 
@@ -574,6 +583,9 @@ function loadAudio(){
 
   loadBuffer( "clickNoteBuffer" , "audio/switch.mp3"    );
   loadBuffer( "startNoteBuffer" , "audio/startNote.mp3" );
+  loadBuffer( "jestNoteBuffer"  , "audio/jest.mp3" );
+
+
 
 }
 
@@ -630,8 +642,10 @@ function start(){
 
 function end(){
 
-  G.startNote.play();
-  endTween( 10000 );
+  G.jestNote.play();
+  G.volumes.jest.gain.value = 3;
+
+  endTween( 5000 );
 
 }
 

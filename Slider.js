@@ -47,6 +47,12 @@ function Slider(){
 
   this.mainBody.appendChild( this.filledBody );
   this.mainBody.appendChild( this.buttonBody );
+
+  window.addEventListener( 'mousewheel', this.onMouseWheel.bind( this ) , false );
+  $(window).bind('mouseDown' , function(){
+    console.log('aa');
+  });
+
 }
 
 
@@ -66,6 +72,11 @@ Slider.prototype.addToDoc = function(){
 Slider.prototype.update = function(){
 
 
+
+}
+
+Slider.prototype.onMouseWheel = function( e ){
+  console.log( e );
 
 }
 
