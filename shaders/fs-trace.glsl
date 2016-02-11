@@ -31,14 +31,6 @@ varying float vNoise;
 varying vec3 vAudio;
 
 
-#define LINKS @links
-
-varying vec4 vLinks[LINKS];
-
-
-uniform vec4 links[LINKS];
-varying vec4 vHovered;
-varying vec4 vActive;
 
 $uvNormalMap
 $semLookup
@@ -93,23 +85,6 @@ vec2 map( vec3 pos ){
 
     vec2 centerBlob = vec2( length( pos - vec3( 0. , -0.03 , .05 ) ) - .055 * ((pain)+.5) + nVal , 1. );
     res = smoothU( res , centerBlob , .2 );
-
-    //for( int i = 0; i< LINKS; i++ ){
-//
-    //  vec2 centerBlob = vec2( length( pos - vLinks[i].xyz ) - .02, float( i ) );
-    //  res = smoothU( res , centerBlob , .05 );
-    //}
-//
-    //if( vHovered.w > 0. ){
-    //  vec2 centerBlob = vec2( length( pos - vHovered.xyz ) - .023 * vHovered.w, 10. );
-    //  res = opU( res , centerBlob  );
-    //}
-//
-    //if( vActive.w > 0. ){
-    //  vec2 centerBlob = vec2( length( pos - vActive.xyz ) - .025 * vActive.w, 11. );
-    //  res = opU( res , centerBlob  );
-    //}
-
 
 
 

@@ -42,7 +42,7 @@ vec3 loveCol(){
 
   vec3 col = vec3(1.);
   vec3 aCol = texture2D(t_audio, vec2( abs(spec) , 0.)).xyz;
-  col -= aCol  * aCol * aCol * (vMNorm * .5 + .5);
+  col -= aCol  * aCol * aCol * (-vMNorm * .5 + .5);
 
   return col;
 
