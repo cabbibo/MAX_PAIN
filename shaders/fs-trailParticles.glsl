@@ -269,7 +269,7 @@ void main(){
   }else{
     if( tri + .03  < 0.){
     discard;
-    }else{ col = vec3( 1. );}
+    }else{ col = vec3( 1. ) ;}
   }
 
 
