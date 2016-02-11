@@ -21,7 +21,7 @@ function TrailParticles(numTriangles){
 
     var index = i * 3;
 
-    v1.x = (i % 3 ) * -.2 - .1 ;//(Math.random() -.5 ) * 5;
+    v1.x = (i % 3 ) * -.25 - .05 ;//(Math.random() -.5 ) * 5;
     v1.y = (((Math.floor(i/3)*3) / numTriangles) -.5) * 2;//(Math.random() -.5 ) * 4;
     v1.z = -1 - Math.random() * .002;// - .01 *(Math.floor(i/3)*3) ;//-(Math.random() ) * 3 - 1;
 

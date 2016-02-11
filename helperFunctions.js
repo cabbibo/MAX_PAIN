@@ -112,7 +112,7 @@ function getBackgroundColor( life ){
 
  // console.log( color.getHexString());
   G.slider.filledBody.style.background = "#" + color.getHexString();
-  G.slider.mainBody.style.border = "4px solid #" + color.getHexString();
+ // G.slider.mainBody.style.border = "4px solid #" + color.getHexString();
 
 
 

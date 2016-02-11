@@ -52,11 +52,11 @@ function loadImages(){
 
 function loadModels(){
 
-  G.loading.neededToLoad += 2;
+  G.loading.neededToLoad += 1;
 
   var loader = new THREE.OBJLoader();
   var faceGeo,highGeo;
-  loader.load( 'assets/low.obj', function ( object ) {
+  /*loader.load( 'assets/low.obj', function ( object ) {
 
 
     object.traverse( function ( child ) {
@@ -77,7 +77,7 @@ function loadModels(){
 
     onLoad();
 
-  }, onProgress, onError );
+  }, onProgress, onError );*/
 
 
   loader.load( 'assets/high.obj', function ( object ) {

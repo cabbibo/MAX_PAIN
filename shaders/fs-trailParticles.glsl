@@ -71,6 +71,48 @@ vec3 hsv(float h, float s, float v)
     h + vec3( 3.0, 2.0, 1.0 ) / 3.0 ) * 6.0 - 3.0 ) - 1.0 ), 0.0, 1.0 ), s ) * v;
 }
 
+// signed distance to hinge, based on iq's 2d tri SDF
+/*float sdTriangle( in vec2 p0, in vec2 p1, in vec2 p2, in vec2 p ){
+
+  vec2 e0 = p1 - p0;
+  vec2 e1 = p2 - p1;
+  vec2 e2 = p0 - p2;
+
+  vec2 v0 = p - p0;
+  vec2 v1 = p - p1;
+  vec2 v2 = p - p2;
+
+  vec2 pq0 = v0;
+  vec2 pq1 = v1 - e1*clamp( dot(v1,e1)/dot(e1,e1), 0.0, 1.0 );
+  vec2 pq2 = v2 - e2*clamp( dot(v2,e2)/dot(e2,e2), 0.0, 1.0 );
+    
+    vec2 d = min( min( vec2( dot( pq0, pq0 ), 1.0 ),
+                       vec2( dot( pq1, pq1 ), v1.x*e1.y-v1.y*e1.x )),
+                       vec2( dot( pq2, pq2 ), v2.x*e2.y-v2.y*e2.x ));
+
+  return -sqrt(d.x)*sign(d.y);
+}*/
+
+// iq's sSqdSegment and sdTriangle functions from: https://www.shadertoy.com/view/XsXSz4
+// squared distance to a segment (and orientation)
+vec2 sSqdSegment( in vec2 a, in vec2 b, in vec2 p )
+{
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+  return vec2( dot( pa-ba*h, pa-ba*h ), pa.x*ba.y-pa.y*ba.x );
+}
+
+// signed distance to a 2D triangle
+float sdTriangle( in vec2 v1, in vec2 v2, in vec2 v3, in vec2 p )
+{
+  vec2 d = min( min( sSqdSegment( v1, v2, p ), 
+             sSqdSegment( v2, v3, p )), 
+               sSqdSegment( v3, v1, p ));
+
+  return -sqrt(d.x)*sign(d.y);
+}
+
 
 //--------------------------------
 // Modelling 
@@ -90,12 +132,12 @@ vec2 map( vec3 pos ){
 
     vec3 newPos = mod( pos , repSize )-0.5* repSize;
     vec3 blobDir = normalize((vCenter - cameraPosition));
-    vec3 blobCenter = vCenter - blobDir  * .1 - vec3( 0. , .1 , 0);//normalize((vCenter - cameraPosition )- vec3( 0. , 0.1, .4 );
+    vec3 blobCenter = vCenter - blobDir  * .1 - vec3( 0. , .03 , 0);//normalize((vCenter - cameraPosition )- vec3( 0. , 0.1, .4 );
     vec2 centerBlob = vec2( length(pos - blobCenter) - (.1 + .1 * (pain+love * .5)), 1. );
     centerBlob.x -= nVal  * -.06 * (pain+love);
     //centerBlob.x = max( centerBlob.x , 0. );
     res = opU( res , centerBlob  );
-    centerBlob = vec2( length(pos - blobCenter + vec3(  .06 * speed * 1000. ,.004 * speed * 1000. ,  0.)) - .02 , 1. );
+    centerBlob = vec2( length(pos - blobCenter + vec3( 0., .1 * speed * 1000.  ,  0.)) - .08 * speed* 500. , 1. );
 
     res = smoothU( res , centerBlob , .2 );
 
@@ -199,6 +241,7 @@ void main(){
 
   col = bgCol;
 
+  float tri = sdTriangle( vec2( 1. , 0. ) , vec2( 0. , 0.) , vec2( .5, 1.) , vUv );
 
 
   vec2 res = calcIntersection( ro , rd );
@@ -220,8 +263,13 @@ void main(){
 
     col = nCol  * norm + pCol * pain + lCol * love;
 
+
+    
+
   }else{
+    if( tri + .03  < 0.){
     discard;
+    }else{ col = vec3( 1. );}
   }
 
 

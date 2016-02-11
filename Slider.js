@@ -111,7 +111,7 @@ Slider.prototype.update = function(){
 
   }
 
-  if( this.life < 0 ){ this.life = 0; this.speed = 0; }
+  if( this.life <= 0 ){  this.speed *= .8; this.speed += 5.1 * -this.life * 1000; }
 
 }
 
