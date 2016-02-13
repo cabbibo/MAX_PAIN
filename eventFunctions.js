@@ -7,7 +7,7 @@ function start(){
 
   animate();
 
-  startTween(50);
+  startTween(5000);
 
 }
 

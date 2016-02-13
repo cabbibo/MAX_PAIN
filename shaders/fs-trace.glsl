@@ -230,7 +230,11 @@ void main(){
 
   col = nCol  * norm + pCol * pain + lCol * love;
 
-  col = mix( col , vec3( 0.05 , 0.05 , 1. ), 1.-started);// + 1.0 * started
+  vec3 startCol = vec3( 0.05 , 0.05 , 1. );
+  vec3 famCol = texture2D( t_color , vUv ).xyz;
+  startCol = mix( startCol , famCol , min( 1. , started * 10.) );
+
+  col = mix( col , startCol , 1.-started );// + 1.0 * started
 
 
   gl_FragColor = vec4( col , 1. );

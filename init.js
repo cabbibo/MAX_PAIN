@@ -11,7 +11,7 @@
         iModelMat:{ type:"m4" , value: new THREE.Matrix4() },
         t_matcap: { type:"t", value: G.textures.matcap},
         t_normal: { type:"t", value: G.textures.normal},
-        t_color:  { type:"t", value: G.textures.colorTex},
+        t_color:  { type:"t", value: G.textures.family},
 
         pain:{type:"f", value:0},
         love:{type:"f", value:0},

@@ -47,6 +47,7 @@ function loadImages(){
   G.textures.matcap   = loadImage('img/rough-aluminium.jpg');
   G.textures.normal   = loadImage('img/t_n_snakeSkin.png' );
   G.textures.colorTex = loadImage('assets/Model.jpg' );
+  G.textures.family   = loadImage('img/parents.jpg' );
 
 }
 
