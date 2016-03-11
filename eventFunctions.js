@@ -59,6 +59,8 @@ function trueEnd(){
   G.ended = true;
   G.slider.removeFromDoc();
 
+  window.location.href="http://maxweisel.com/"
+
 }
 
 function startTween( time ){

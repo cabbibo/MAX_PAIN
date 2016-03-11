@@ -33,9 +33,9 @@ function Slider(){
 
   document.body.onmousemove = function(e){
 
-    if( this.down == true ){
-      this.x = e.clientX - 9;
-      this.life = this.x / window.innerWidth;
+    if( this.down == true && this.alive == true ){
+      this.y = e.clientY ;
+      this.life = this.y / (window.innerHeight);
       this.setNewPos( this.life );
 
   
@@ -97,7 +97,7 @@ Slider.prototype.update = function(){
 
     this.setNewPos( this.life );
 
-    if( this.life > 1 ){ 
+    if( this.life > .98 ){ 
 
       this.alive = false;
       this.life = 1;
