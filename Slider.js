@@ -11,6 +11,17 @@ function Slider(){
 
   this.infoBody.innerHTML = "scroll  <br/> &#x2193; &#x2193; &#x2193;"
 
+  this.element = document.getElementById("fake");
+
+  this.totalHeight = 15000;
+  this.holder = document.createElement("div");
+  this.holder.style.position = "absolute"; 
+  this.holder.style.left = "0px";
+  this.holder.style.top = this.totalHeight + "px";
+  this.holder.innerHTML = "."
+
+  document.body.appendChild( this.holder );  //document.body.
+
 
   //this.mainBody.style.width = window.innerWidth - 22;
   //this.mainBody.style.left = 14;
@@ -22,6 +33,7 @@ function Slider(){
 
   this.life = 0;
   this.alive = true;
+  this.actualPos = 0;
 
   this.mainBody.onmouseover = function(){
    // console.log("Sss");
@@ -74,7 +86,7 @@ Slider.prototype.setNewPos = function(life){
 }
 
 Slider.prototype.addToDoc = function(){
-  document.body.appendChild( this.mainBody );
+  //document.body.appendChild( this.mainBody );
   document.body.appendChild( this.infoBody );
 }
 
@@ -82,7 +94,7 @@ Slider.prototype.removeFromDoc = function(){
   //document.body.removeChild( this.mainBody );
   this.mainBody.remove();
 }
-Slider.prototype.update = function(){
+/*Slider.prototype.update = function(){
 
   if( this.active == true ){
 
@@ -113,10 +125,92 @@ Slider.prototype.update = function(){
 
   if( this.life <= 0 ){  this.speed *= .8; this.speed += 5.1 * -this.life * 1000; }
 
+} */
+
+Slider.prototype.update = function(){
+
+
+  if( this.active == true ){
+
+  var doc = document.body;
+
+ // var left = (window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0);
+  var top = (window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0);
+
+  //console.log( top );
+
+  var dif = top - this.actualPos;
+
+  console.log( dif );
+  this.actualPos = this.actualPos + dif * .1;
+
+  this.life = this.actualPos / this.totalHeight;
+
+
+  this.totalHeight = this.life  * 100000 + ( this.life + this.life  *  200000 )+ 15000;
+
+    if( doc.scrollTop < 0 || window.pageYOffset < 0){
+      doc.scrollTop = 0;
+      window.pageYOffset = 0;
+    }
+
+    if( doc.scrollTop >= this.totalHeight ||window.pageYOffset >= this.totalHeight){
+      doc.scrollTop = this.totalHeight;
+      window.pageYOffset = this.totalHeight;
+    }
+  
+  this.holder.style.top = this.totalHeight + "px";
+
+
+  console.log( this.life );
+
+  this.setNewPos( this.life );
+
+    if( this.life > .98  && !this.enderAdded ){ 
+
+      this.addEnder();
+      this.enderAdded = true;
+      
+    }
+
+  }else{
+     var doc = document.body;
+
+    doc.scrollTop = 0;
+    window.pageYOffset = 0;
+  }
+
+
+    //if( this.life <= 0 ){  this.speed *= .8; this.speed += 5.1 * -this.life * 1000; }
+
+
 }
 
+Slider.prototype.endItAll = function(){
+
+  this.alive = false;
+
+  end(); 
+
+  this.infoBody.remove();
+  this.ender.remove();
+  this.active = false;
+
+}
+
+Slider.prototype.addEnder = function(){
+
+  var ender = document.createElement("a");
+  ender.innerHTML = "\u2022 close"
+  ender.id ="ender";
+  ender.onclick = function(){ this.endItAll() }.bind( this );
+  this.ender = ender;
+  document.body.appendChild( ender );
+}
+
+
 Slider.prototype.onMouseWheel = function( e ){
-  console.log( e.deltaY );
+  //console.log( e.deltaY );
 
   this.speed += .1 * e.deltaY;
 

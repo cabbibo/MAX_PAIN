@@ -19,6 +19,7 @@
 
     var c = getBackgroundColor(G.life);
     G.three.renderer.setClearColor( c , 1 );
+
   }
 
 
@@ -52,7 +53,7 @@ function makeNewUniforms(newPropt , newUniform ){
 function convertLife(){
 
   var loveStartVal = .93;
-  var loveFullVal  = 1;
+  var loveFullVal  = .96;
 
   var painStartVal = 0;
   var painFullVal = .6;
@@ -107,6 +108,8 @@ function getBackgroundColor( life ){
   color.lerp( G.colors.norm ,1-G.uniforms.started.value );
 
   var hex = color.getHex();
+
+  document.documentElement.style.background = "#" + color.getHexString();
 
 
 

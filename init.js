@@ -98,14 +98,14 @@
 
       G.three.renderer.domElement.id = "renderer"
       document.body.appendChild( G.three.renderer.domElement );
+      G.three.renderer.domElement.style.pointerEvents = "none";
+
+      //G.three.objectControls = new ObjectControls( G.three.camera );
 
 
-      G.three.objectControls = new ObjectControls( G.three.camera );
+      //G.three.controls = new THREE.TrackballControls( G.three.camera );
 
-
-      G.three.controls = new THREE.TrackballControls( G.three.camera );
-
-      G.three.controls = new THREE.MouseMoveControls( G.three.camera );
+     // G.three.controls = new THREE.MouseMoveControls( G.three.camera );
 
 
 
@@ -153,6 +153,7 @@
         uniforms: G.uniforms,
         vertexShader: G.shaders.vs.halo,
         fragmentShader: G.shaders.fs.halo,
+
       });
 
       G.mandala = [];
@@ -168,6 +169,7 @@
           obj.add( mesh );
           G.mandala.push( mesh );
           mesh.visible = false;
+          mesh.frustumCulled = false;
         }
 
         obj.position.z = -.2 + .2 * (-j / 5);

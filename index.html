@@ -6,6 +6,8 @@
       font-family: "GeoSans";
       src: url("assets/GeosansLight.ttf");
     }
+
+
     html{ color:#ffc; background:#1010ff; font-family:"GeoSans" }
     body{
       font-size:30px;
@@ -14,6 +16,19 @@
       font-style: normal;
       color: #ffffff;
     }
+    #fake{
+
+      height:10000px;
+      width:100%;
+      position:absolute;
+      top:0px;
+      left:0px;
+      background: #0f0;
+
+      overflow:scroll;
+
+
+    }
     a{
       color: #fff;
     }
@@ -21,11 +36,29 @@
       position:fixed;
       top:0px;
       left:0px;
+      pointer-events: none;
+    }
+
+    #ender{
+      //width:200px;
+      //height:200px;
+      padding:20px;
+     // background: #0ff;
+      color:#111;
+      top:0px;
+      left:0px;
+      position: fixed;
+      z-index: 999;
+    }
+    #ender:hover{
+      text-decoration: underline;
     }
     code{
       color:#fff;
       font-size:20px;
     }
+
+
 
 
     #mainBody{
@@ -60,13 +93,15 @@
     #infoBody{
       z-index: 999;
       position: absolute;
-      right: 40px;
+      right: 20px;
     }
 
   </style>
 
 </head>
 <body style="margin:0px">
+
+
 
 <script src="lib/three.js"                    ></script>
 <script src="lib/Tween.js"                    ></script>
@@ -118,6 +153,7 @@
 
 </script>
  
+
 
 
 

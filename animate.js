@@ -23,7 +23,7 @@
       G.rotator.rotation.y  = -G.life * 10 - .9;
 
       //G.three.controls.update();
-      G.three.objectControls.update();
+      //G.three.objectControls.update();
 
       G.audio.update();
 
