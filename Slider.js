@@ -147,7 +147,7 @@ Slider.prototype.update = function(){
   this.life = this.actualPos / this.totalHeight;
 
 
-  this.totalHeight = this.life  * 100000 + ( this.life + this.life  *  200000 )+ 15000;
+  this.totalHeight = this.life  * 80000 + ( this.life + this.life  *  120000 )+ 15000;
 
     if( doc.scrollTop < 0 || window.pageYOffset < 0){
       doc.scrollTop = 0;
