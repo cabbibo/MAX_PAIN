@@ -111,7 +111,7 @@ function getBackgroundColor( life ){
 
   document.documentElement.style.background = "#" + color.getHexString();
 
-
+  G.uniforms.bgCol.value.set( color.r , color.g , color.b );
 
  // console.log( color.getHexString());
   G.slider.filledBody.style.background = "#" + color.getHexString();

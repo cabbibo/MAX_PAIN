@@ -20,6 +20,7 @@
 
         lightPos:{type:"v3",value:new THREE.Vector3( 1 , 1 , -1 )},
         started:{type:"f", value:0},
+        bgCol:{type:"v3", value:new THREE.Vector3(1,1,1)},
 
         life :{type:"f", value:0}
 

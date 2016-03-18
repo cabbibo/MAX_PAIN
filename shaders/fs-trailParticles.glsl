@@ -16,6 +16,7 @@ uniform float started;
 
 uniform vec3 lightPos;
 uniform float speed;
+uniform vec3 bgCol;
 
 
 varying vec3 vPos;
@@ -237,7 +238,7 @@ void main(){
   vec3 p = vec3( 0. );
   vec3 col =  vec3( 0. , 0. , 0. );
 
-  vec3 bgCol = vec3( 0., 0. , 1.);
+ // vec3 bgCol = vec3( 0., 0. , 1.);
 
   col = bgCol;
 
@@ -268,9 +269,10 @@ void main(){
 
   }else{
     if( tri + .03  < 0.){
-    discard;
-    }else{ col = vec3( 1. ) ;}
+      discard;
+    }else{ col = vec3(1.);}
   }
+
 
 
 
