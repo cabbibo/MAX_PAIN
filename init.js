@@ -146,6 +146,17 @@
       
       G.highBody.position.y = 0;
 
+      var geo = new THREE.PlaneGeometry( .5 , 4 );
+      var mat = new THREE.ShaderMaterial({
+        uniforms: G.uniforms,
+        vertexShader: G.shaders.vs.bgBox,
+        fragmentShader: G.shaders.fs.bgBox,
+      });
+
+      var mesh = new THREE.Mesh( geo , mat );
+      G.three.scene.add( mesh );
+      mesh.position.z = -1;
+      mesh.position.x = -.3;
 
 
 
@@ -186,8 +197,8 @@
 
       }
 
-      G.trailParticles = TrailParticles(21);
-      G.three.scene.add( G.trailParticles );
+      G.trailParticles = TrailParticles(7 * 3);
+      //.three.scene.add( G.trailParticles );
 
 
 

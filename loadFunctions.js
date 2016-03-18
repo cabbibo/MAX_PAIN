@@ -20,6 +20,9 @@ function loadShaders(){
   G.shaders.load( 'vs-trailParticles' , 'trailParticles' , 'vertex' );
   G.shaders.load( 'fs-trailParticles' , 'trailParticles' , 'fragment' );
 
+  G.shaders.load( 'vs-bgBox' , 'bgBox' , 'vertex' );
+  G.shaders.load( 'fs-bgBox' , 'bgBox' , 'fragment' );
+
   
   G.shaders.shaderSetLoaded = function(){
     onLoad();

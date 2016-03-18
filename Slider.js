@@ -142,13 +142,23 @@ Slider.prototype.update = function(){
   var dif = top - this.actualPos;
 
   console.log( dif );
+
+  this.oAcutalPos = this.actualPos;
+
   this.actualPos = this.actualPos + dif * .1;
+
+  this.oSpeed = this.speed;
+  this.speed = this.actualPos - this.oAcutalPos;
+
+  this.speed = ( this.speed - this.oSpeed ) * .1 + this.oSpeed;
 
   this.life = this.actualPos / this.totalHeight;
 
 
+  this.oTotalHeight = this.totalHeight;
   this.totalHeight = this.life  * 80000 + ( this.life + this.life  *  120000 )+ 15000;
 
+  this.totalHeight = (this.totalHeight - this.oTotalHeight) * .1 + this.oTotalHeight;
     if( doc.scrollTop < 0 || window.pageYOffset < 0){
       doc.scrollTop = 0;
       window.pageYOffset = 0;
@@ -212,7 +222,7 @@ Slider.prototype.addEnder = function(){
 Slider.prototype.onMouseWheel = function( e ){
   //console.log( e.deltaY );
 
-  this.speed += .1 * e.deltaY;
+  //this.speed += .1 * e.deltaY;
 
 }
 

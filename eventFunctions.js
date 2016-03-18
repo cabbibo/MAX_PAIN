@@ -61,7 +61,7 @@ function trueEnd(){
 
   setTimeout(function(){
     window.location.href="http://maxweisel.com/"
-  },10000);
+  },2000);
 
 }
 

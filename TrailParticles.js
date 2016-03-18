@@ -4,13 +4,16 @@ function TrailParticles(numTriangles){
   
   var positions = new Float32Array( numTriangles *  3 * 3 );
   var uvs       = new Float32Array( numTriangles *  3 * 2 );
+  var ids       = new Float32Array( numTriangles *  3 * 1 );
 
   var pos  = new THREE.BufferAttribute( positions , 3 );
   var uv  = new THREE.BufferAttribute( uvs , 2 );
+  var id  = new THREE.BufferAttribute( ids , 1 );
 
 
   geo.addAttribute( 'position' , pos );
   geo.addAttribute( 'uv' , uv );
+  geo.addAttribute( 'id' , id );
 
   var vertCount = 0;
 
@@ -51,11 +54,18 @@ function TrailParticles(numTriangles){
     uvs[ index * 2 + 4 ] = 0.5; 
     uvs[ index * 2 + 5 ] = 1; 
 
+    var mr = Math.random();
+
+    ids[ index + 0 ] = (i+10)* mr;
+    ids[ index + 1 ] = (i+10)* mr;
+    ids[ index + 2 ] = (i+10)* mr;
+
 
   }
 
   var mat = new THREE.ShaderMaterial({
     uniforms: G.uniforms,
+    //attributes:{id:{type:"f",value:null}},
     vertexShader: G.shaders.vs.trailParticles,
     fragmentShader: G.shaders.fs.trailParticles,
     side:THREE.DoubleSide,

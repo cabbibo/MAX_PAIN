@@ -40,22 +40,6 @@ void main(){
 
   vec3 pos = position;
 
-  pos += vec3( 0 , life * 5.0 , 0 );
-
-  pos.y = pos.y - (floor( pos.y / 2. ) * 2.) - 1.; //mod(pos.y, 2);
-
-  //pos.y += speed * (abs(sin( id )) + 2.) * 50.;
-
-  vCenter = pos;
-  if( uv.y == 1. ){
-    //pos += vec3( 0, -speed * 200. , 0 );
-    pos += vec3( 0, -.2 - speed * 10. , 0 );
-  }else if( uv.x == 0. ){
-    pos += vec3( -.1, 0 , 0 );
-  }else if( uv.x == 1. ){
-    pos += vec3( .1, 0 , 0 );
-
-  }
 
   vPos = pos;
   vUv = uv;
@@ -68,4 +52,3 @@ void main(){
   gl_Position = projectionMatrix * modelMatrix * vec4( vPos , 1.);
 
 }
-
