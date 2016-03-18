@@ -277,8 +277,8 @@ void main(){
 
     col = nCol  * norm + pCol * pain + lCol * love;
 
-    float uvN = pNoise( 50. * vec3( vUv.x , vUv.y * 4.0 - life , 0.));
-     uvN += pNoise( 100. * vec3( vUv.x , vUv.y * 4.0 - life , 0.));
+    float uvN = pNoise( (5. + 5.*(pain)) * vec3( vUv.x , vUv.y * 8.0 - life , time*.02));
+     uvN += pNoise( (10. +10.*(pain))* vec3( vUv.x , vUv.y * 8.0 - life , time*.02));
 
     float uvCutoff = abs( vUv.x - 0.5 ) * abs( vUv.x - 0.5 ) * abs(vUv.x-.5)* 2.;
     //float uvCutoff += abs( vUv.y - 0.5 ) * abs( vUv. - 0.5 ) * abs(vUv.x-.5)* 2.;
@@ -288,7 +288,7 @@ void main(){
     mixVal = min( 1. , 1.-(val * 30.0));
     mixVal = max( 0. , mixVal );//clamp(0., 1., -val / 2000000.);
 
-    if( fNoise < uvCutoff ){discard;}
+   // if( fNoise < uvCutoff ){discard;}
     //if( uvN < abs( vUv.y - 0.5 ) ){discard;}
 
 

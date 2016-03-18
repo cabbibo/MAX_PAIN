@@ -146,7 +146,7 @@
       
       G.highBody.position.y = 0;
 
-      var geo = new THREE.PlaneGeometry( .5 , 4 );
+      var geo = new THREE.PlaneGeometry( .6 , 4 );
       var mat = new THREE.ShaderMaterial({
         uniforms: G.uniforms,
         vertexShader: G.shaders.vs.bgBox,
