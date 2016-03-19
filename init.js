@@ -156,7 +156,9 @@
       var mesh = new THREE.Mesh( geo , mat );
       G.three.scene.add( mesh );
       mesh.position.z = -1;
-      mesh.position.x = -.3;
+      mesh.position.x = -1.;
+
+      G.bgBox = mesh;
 
 
 

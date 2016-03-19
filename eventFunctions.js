@@ -16,7 +16,7 @@ function end(){
   G.jestNote.play();
   G.volumes.jest.gain.value = 3;
 
-  endTween( 5000 );
+  endTween( 3000 );
 
 }
 
@@ -50,7 +50,7 @@ function endTween( time ){
 }
 
 function trueEnd(){
-  console.log( "DONE" );
+  //console.log( "DONE" );
 
   G.volumes.love.gain.value = 0;
   G.volumes.pain.gain.value = 0;
@@ -61,7 +61,7 @@ function trueEnd(){
 
   setTimeout(function(){
     window.location.href="http://maxweisel.com/"
-  },2000);
+  },3000);
 
 }
 

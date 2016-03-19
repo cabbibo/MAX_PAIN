@@ -210,12 +210,14 @@ Slider.prototype.endItAll = function(){
 
 Slider.prototype.addEnder = function(){
 
-  var ender = document.createElement("a");
-  ender.innerHTML = "\u2022 close"
-  ender.id ="ender";
-  ender.onclick = function(){ this.endItAll() }.bind( this );
-  this.ender = ender;
-  document.body.appendChild( ender );
+  //var ender = document.createElement("a");
+  //ender.innerHTML = "\u2022 close"
+  //ender.id ="ender";
+  //ender.onclick = function(){ this.endItAll() }.bind( this );
+  //this.ender = ender;
+  //document.body.appendChild( ender );
+
+  setTimeout( function(){ console.log("dd");this.endItAll() }.bind( this ), 2000);
 }
 
 
