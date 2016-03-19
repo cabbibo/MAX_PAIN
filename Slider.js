@@ -156,7 +156,7 @@ Slider.prototype.update = function(){
 
 
   this.oTotalHeight = this.totalHeight;
-  this.totalHeight = this.life  * 80000 + ( this.life + this.life  *  120000 )+ 15000;
+  this.totalHeight = this.life  * 80000 + ( this.life * this.life  *  300000 )+ 15000;
 
   this.totalHeight = (this.totalHeight - this.oTotalHeight) * .1 + this.oTotalHeight;
     if( doc.scrollTop < 0 || window.pageYOffset < 0){
@@ -210,11 +210,11 @@ Slider.prototype.endItAll = function(){
 
 Slider.prototype.addEnder = function(){
 
-  //var ender = document.createElement("a");
-  //ender.innerHTML = "\u2022 close"
-  //ender.id ="ender";
-  //ender.onclick = function(){ this.endItAll() }.bind( this );
-  //this.ender = ender;
+  var ender = document.createElement("a");
+  ender.innerHTML = "\u2022 close"
+  ender.id ="ender";
+  ender.onclick = function(){ this.endItAll() }.bind( this );
+  this.ender = ender;
   //document.body.appendChild( ender );
 
   setTimeout( function(){ console.log("dd");this.endItAll() }.bind( this ), 2000);
