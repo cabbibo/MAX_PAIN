@@ -7,7 +7,7 @@
       requestAnimationFrame( animate );
       G.slider.update();
 
-      G.bgBox.position.x = -1.2 + G.life * .8;
+      G.bgBox.position.x = -1. + G.life * .7;
       G.rotator.position.x = -.1 + G.life * .3;
 
       G.life = G.slider.life;

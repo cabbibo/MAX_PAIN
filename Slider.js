@@ -9,7 +9,8 @@ function Slider(){
   this.buttonBody.id = "buttonBody";
   this.infoBody.id ="infoBody";
 
-  this.infoBody.innerHTML = "scroll  <br/> &#x2193; &#x2193; &#x2193;"
+  //this.infoBody.innerHTML = "scroll  <br/> &#x2193; &#x2193; &#x2193;"
+  this.infoBody.innerHTML = "&#x2193;"
 
   this.element = document.getElementById("fake");
 
