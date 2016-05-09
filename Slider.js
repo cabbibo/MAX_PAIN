@@ -1,4 +1,4 @@
-function Slider(){
+ Slider(){
   
   this.mainBody = document.createElement("div");
   this.filledBody = document.createElement("div");

@@ -58,8 +58,6 @@ function setUpGlobal(){
   //G.audio.mute.gain.value = 0;
 
 
-
-
   G.controlMat = new THREE.MeshBasicMaterial();
   G.controlGeo = new THREE.IcosahedronGeometry(.03 , 2);
 

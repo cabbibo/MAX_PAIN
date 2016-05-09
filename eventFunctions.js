@@ -59,8 +59,10 @@ function trueEnd(){
   G.ended = true;
   G.slider.removeFromDoc();
 
+  //parent.Mw.Egg.hide()
+
   setTimeout(function(){
-    window.location.href="http://maxweisel.com/"
+    parent.Mw.Egg.hide();//window.location.href="http://maxweisel.com/"
   },3000);
 
 }
